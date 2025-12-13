@@ -2,68 +2,187 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
-  <title>行程表測試</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>旅行 App 模擬</title>
   <style>
-    body { font-family: "Noto Sans TC", Arial, sans-serif; background:#f0f4f8; margin:20px; }
-    input { margin:5px; padding:6px; }
-    button { margin:5px; padding:6px 10px; cursor:pointer; }
-    .item {
-      background:#fff; border:1px solid #ccc; border-radius:6px;
-      padding:8px; margin:6px 0; display:flex; justify-content:space-between; align-items:center;
+    body {
+      margin: 0;
+      font-family: "Noto Sans TC", Arial, sans-serif;
+      background: url('https://d1grca2t3zpuug.cloudfront.net/2017/06/fujimt016-1750989984.webp') no-repeat center center fixed;
+      background-size: cover;
+      color: #fff;
     }
+    .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: -1; }
+    header { padding: 10px; font-size: 14px; background: rgba(0,0,0,0.5); position: sticky; top: 0; }
+    header .rate { font-weight: bold; }
+    main { padding: 15px; }
+    section { display: none; background: rgba(0,0,0,0.5); border-radius: 10px; padding: 15px; }
+    section.active { display: block; }
+    nav { position: fixed; bottom: 0; left: 0; right: 0; display: flex; background: rgba(0,0,0,0.8); }
+    nav button { flex: 1; padding: 12px; border: none; background: transparent; color: #fff; font-size: 14px; cursor: pointer; }
+    nav button.active { background: rgba(255,255,255,0.2); }
+    input { width: 100%; padding: 8px; margin: 5px 0; border-radius: 6px; border: none; }
+    .list { margin-top: 10px; }
+    .item { background: rgba(255,255,255,0.1); padding: 8px; border-radius: 6px; margin-bottom: 6px; display:flex; justify-content:space-between; align-items:center; }
+    .thumbs img { width: 100px; height: 100px; object-fit: cover; margin: 5px; border-radius: 8px; }
   </style>
 </head>
 <body>
-  <h2>行程表</h2>
-  <input id="it_title" placeholder="行程項目">
-  <input id="it_date" type="date">
-  <input id="it_time" type="time">
-  <input id="it_place" placeholder="地點">
-  <button id="it_add">新增行程</button>
+  <div class="overlay"></div>
+  <header>
+    <div class="rate">JPY→HKD 匯率：<span id="rate">載入中...</span></div>
+  </header>
 
-  <div id="it_list"></div>
+  <main>
+    <!-- 行程表 -->
+    <section id="itinerary" class="active">
+      <h2>行程表</h2>
+      <input id="it_title" placeholder="行程項目">
+      <input id="it_date" type="date">
+      <input id="it_time" type="time">
+      <input id="it_place" placeholder="地點">
+      <button id="it_add">新增行程</button>
+      <div id="it_list" class="list"></div>
+    </section>
+
+    <!-- 地圖 -->
+    <section id="map">
+      <h2>地圖</h2>
+      <select id="map_select"></select>
+      <iframe id="map_iframe" width="100%" height="300"></iframe>
+    </section>
+
+    <!-- 預算表 -->
+    <section id="budget">
+      <h2>預算表</h2>
+      <input id="bd_title" placeholder="項目">
+      <input id="bd_amount" type="number" placeholder="金額 (JPY)">
+      <button id="bd_add">新增項目</button>
+      <div id="bd_list" class="list"></div>
+      <div>合計：<span id="bd_sum">¥0 → HK$0</span></div>
+    </section>
+
+    <!-- 購物表 -->
+    <section id="shopping">
+      <h2>購物表</h2>
+      <input id="sp_title" placeholder="品項">
+      <input id="sp_price" type="number" placeholder="價格 (JPY)">
+      <input id="sp_photo" type="file" accept="image/*">
+      <button id="sp_add">新增品項</button>
+      <div id="sp_list" class="list"></div>
+      <div class="thumbs" id="sp_thumbs"></div>
+    </section>
+  </main>
+
+  <nav>
+    <button class="active" data-view="itinerary">行程表</button>
+    <button data-view="map">地圖</button>
+    <button data-view="budget">預算表</button>
+    <button data-view="shopping">購物表</button>
+  </nav>
 
   <script>
-    const itinerary = [];
+    // 匯率
+    async function loadRate(){
+      try{
+        const res = await fetch('https://api.exchangerate.host/latest?base=JPY&symbols=HKD');
+        const data = await res.json();
+        const rate = data.rates.HKD;
+        document.getElementById('rate').textContent = rate.toFixed(4);
+        window.jpyRate = rate;
+      }catch(e){
+        document.getElementById('rate').textContent = '請手動輸入';
+        window.jpyRate = 0.055;
+      }
+    }
+    loadRate();
 
-    // 綁定新增按鍵
-    document.getElementById('it_add').addEventListener('click', addItinerary);
+    // Tab 切換
+    document.querySelectorAll('nav button').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
+        document.getElementById(btn.dataset.view).classList.add('active');
+        document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
 
-    function addItinerary(){
-      const title = document.getElementById('it_title').value;
-      const date = document.getElementById('it_date').value;
-      const time = document.getElementById('it_time').value;
-      const place = document.getElementById('it_place').value;
-
-      if(!title){ alert("請輸入行程項目"); return; }
-
+    // 行程表
+    const itinerary=[];
+    document.getElementById('it_add').addEventListener('click',()=>{
+      const title=document.getElementById('it_title').value;
+      const date=document.getElementById('it_date').value;
+      const time=document.getElementById('it_time').value;
+      const place=document.getElementById('it_place').value;
+      if(!title){alert("請輸入行程項目");return;}
       itinerary.push({title,date,time,place});
       renderItinerary();
-
-      // 清空輸入框
-      document.getElementById('it_title').value='';
-      document.getElementById('it_date').value='';
-      document.getElementById('it_time').value='';
-      document.getElementById('it_place').value='';
-    }
-
+    });
     function renderItinerary(){
-      const list = document.getElementById('it_list');
-      list.innerHTML = '';
-      itinerary.forEach((it, index)=>{
-        const div = document.createElement('div');
-        div.className = 'item';
-        div.innerHTML = `
-          <span>${it.date} ${it.time} - ${it.title} @ ${it.place}</span>
-          <button onclick="deleteItinerary(${index})">刪除</button>
-        `;
+      const list=document.getElementById('it_list');
+      list.innerHTML='';
+      itinerary.forEach((it,index)=>{
+        const div=document.createElement('div');
+        div.className='item';
+        div.innerHTML=`<span>${it.date} ${it.time} - ${it.title} @ ${it.place}</span>
+                       <button onclick="deleteItinerary(${index})">刪除</button>`;
         list.appendChild(div);
       });
+      const sel=document.getElementById('map_select');
+      sel.innerHTML='';
+      itinerary.forEach(it=>{
+        const opt=document.createElement('option');
+        opt.value=it.place;
+        opt.textContent=it.title;
+        sel.appendChild(opt);
+      });
+    }
+    function deleteItinerary(index){
+      itinerary.splice(index,1);
+      renderItinerary();
     }
 
-    function deleteItinerary(index){
-      itinerary.splice(index,1); // 移除指定行程
-      renderItinerary();         // 重新渲染列表
+    // 地圖
+    document.getElementById('map_select').addEventListener('change',e=>{
+      const place=e.target.value;
+      document.getElementById('map_iframe').src=`https://www.google.com/maps?q=${encodeURIComponent(place)}&output=embed`;
+    });
+
+    // 預算表
+    const budget=[];
+    document.getElementById('bd_add').addEventListener('click',()=>{
+      const title=document.getElementById('bd_title').value;
+      const amount=Number(document.getElementById('bd_amount').value);
+      if(!title||!amount){alert("請輸入項目與金額");return;}
+      budget.push({title,amount});
+      renderBudget();
+    });
+    function renderBudget(){
+      const list=document.getElementById('bd_list');
+      list.innerHTML='';
+      let sum=0;
+      budget.forEach((b,index)=>{
+        const div=document.createElement('div');
+        div.className='item';
+        div.innerHTML=`<span>${b.title}: ¥${b.amount}</span>
+                       <button onclick="deleteBudget(${index})">刪除</button>`;
+        list.appendChild(div);
+        sum+=b.amount;
+      });
+      const hkd=sum*(window.jpyRate||0.055);
+      document.getElementById('bd_sum').textContent=`¥${sum} → HK$${hkd.toFixed(2)}`;
+    }
+    function deleteBudget(index){
+      budget.splice(index,1);
+      renderBudget();
+    }
+
+    // 購物表
+    const shopping=[];
+    document.getElementById('sp_add').addEventListener('click',()=>{
+      const title=document.getElementById('sp_title').value;
+      const price=document.getElementById('sp_price').value;
+      const file
     }
   </script>
 </body>
