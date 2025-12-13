@@ -12,62 +12,19 @@
       background-size: cover;
       color: #fff;
     }
-    .overlay {
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,0.6);
-      z-index: -1;
-    }
-    header {
-      padding: 10px;
-      font-size: 14px;
-      background: rgba(0,0,0,0.5);
-      position: sticky;
-      top: 0;
-    }
-    header .rate {
-      font-weight: bold;
-    }
+    .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: -1; }
+    header { padding: 10px; font-size: 14px; background: rgba(0,0,0,0.5); position: sticky; top: 0; }
+    header .rate { font-weight: bold; }
     main { padding: 15px; }
-    section {
-      display: none;
-      background: rgba(0,0,0,0.5);
-      border-radius: 10px;
-      padding: 15px;
-    }
+    section { display: none; background: rgba(0,0,0,0.5); border-radius: 10px; padding: 15px; }
     section.active { display: block; }
-    nav {
-      position: fixed; bottom: 0; left: 0; right: 0;
-      display: flex;
-      background: rgba(0,0,0,0.8);
-    }
-    nav button {
-      flex: 1;
-      padding: 12px;
-      border: none;
-      background: transparent;
-      color: #fff;
-      font-size: 14px;
-      cursor: pointer;
-    }
+    nav { position: fixed; bottom: 0; left: 0; right: 0; display: flex; background: rgba(0,0,0,0.8); }
+    nav button { flex: 1; padding: 12px; border: none; background: transparent; color: #fff; font-size: 14px; cursor: pointer; }
     nav button.active { background: rgba(255,255,255,0.2); }
-    input, textarea {
-      width: 100%;
-      padding: 8px;
-      margin: 5px 0;
-      border-radius: 6px;
-      border: none;
-    }
+    input { width: 100%; padding: 8px; margin: 5px 0; border-radius: 6px; border: none; }
     .list { margin-top: 10px; }
-    .item {
-      background: rgba(255,255,255,0.1);
-      padding: 8px;
-      border-radius: 6px;
-      margin-bottom: 6px;
-    }
-    .thumbs img {
-      width: 100px; height: 100px; object-fit: cover;
-      margin: 5px; border-radius: 8px;
-    }
+    .item { background: rgba(255,255,255,0.1); padding: 8px; border-radius: 6px; margin-bottom: 6px; }
+    .thumbs img { width: 100px; height: 100px; object-fit: cover; margin: 5px; border-radius: 8px; }
   </style>
 </head>
 <body>
@@ -220,4 +177,9 @@
       if(file){
         const reader=new FileReader();
         reader.onload=function(e){
-          shopping
+          shopping.push({title,price,photo:e.target.result});
+          renderShopping();
+        };
+        reader.readAsDataURL(file);
+      } else {
+        shopping.push({title
