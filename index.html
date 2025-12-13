@@ -1,19 +1,24 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>旅行 App 模擬</title>
   <style>
     body {
       margin: 0;
       font-family: "Noto Sans TC", Arial, sans-serif;
-      background: url('https://d1grca2t3zpuug.cloudfront.net/2017/06/fujimt016-1750989984.webp') no-repeat center center fixed;
-      background-size: cover;
+      background: url('https://d1grca2t3zpuug.cloudfront.net/2017/06/fujimt016-1750989984.webp') center/cover fixed no-repeat;
       color: #fff;
     }
     .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: -1; }
-    header { padding: 10px; font-size: 14px; background: rgba(0,0,0,0.5); position: sticky; top: 0; }
+    header {
+      padding: 10px;
+      font-size: 14px;
+      background: rgba(0,0,0,0.5);
+      position: sticky;
+      top: 0;
+    }
     .subtitle { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
     header .rate { font-weight: bold; }
     main { padding: 15px; }
@@ -168,4 +173,3 @@
     document.getElementById('map_date').addEventListener('change',e=>setMapByDate(e.target.value));
     document.getElementById('map_open').addEventListener('click',()=>{
       const date=document.getElementById('map_date').value;
-      const places=itinerary.filter(it=>it.date===date).map(it=>it.place).
