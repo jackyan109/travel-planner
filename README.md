@@ -169,5 +169,3 @@
     document.getElementById('map_open').addEventListener('click',()=>{
       const date=document.getElementById('map_date').value;
       const places=itinerary.filter(it=>it.date===date).map(it=>it.place).
-</body>
-</html>
