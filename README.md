@@ -459,73 +459,33 @@
         const bx = new Date(`${b.date || '2100-01-01'}T${b.time || '00:00'}`).getTime();
         return ax - bx;
       });
-      save(); render();
+      save(); render();<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>我的旅行行程</title>
+  <style>
+    body {
+      font-family: "Noto Sans TC", Arial, sans-serif;
+      background: #f0f4f8;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      color: #2c3e50;
+    }
+    .trip {
+      background: #fff;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .trip h2 {
+      margin: 0 0 5px;
+      color: #2980b9;
     }
 
-    function filterToday() {
-      const today = new Date();
-      const yyyy = today.getFullYear();
-      const mm = String(today.getMonth() + 1).padStart(2, '0');
-      const dd = String(today.getDate()).padStart(2, '0');
-      const iso = `${yyyy}-${mm}-${dd}`;
-      const filtered = items.filter(i => i.date === iso);
-      render(filtered);
-    }
-
-    function showAll() { render(items); }
-
-    function exportJSON() {
-      const data = JSON.stringify({
-        tripName: els.tripName.value.trim(),
-        tripLocation: els.tripLocation.value.trim(),
-        items
-      }, null, 2);
-      const blob = new Blob([data], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      const name = (els.tripName.value.trim() || 'trip') + '.json';
-      a.href = url; a.download = name;
-      document.body.appendChild(a); a.click();
-      a.remove(); URL.revokeObjectURL(url);
-    }
-
-    function importJSON(file) {
-      const reader = new FileReader();
-      reader.onload = e => {
-        try {
-          const data = JSON.parse(e.target.result);
-          items = Array.isArray(data.items) ? data.items : [];
-          els.tripName.value = data.tripName || '';
-          els.tripLocation.value = data.tripLocation || '';
-          save(); render();
-        } catch (err) {
-          alert('匯入失敗：格式錯誤');
-        }
-      };
-      reader.readAsText(file);
-    }
-
-    // Event bindings
-    els.addBtn.addEventListener('click', addItem);
-    els.clearInputsBtn.addEventListener('click', clearInputs);
-    els.sortBtn.addEventListener('click', sortByDateTime);
-    els.filterTodayBtn.addEventListener('click', filterToday);
-    els.showAllBtn.addEventListener('click', showAll);
-    els.exportBtn.addEventListener('click', exportJSON);
-    els.importBtn.addEventListener('click', () => els.fileInput.click());
-    els.fileInput.addEventListener('change', (e) => {
-      if (e.target.files[0]) importJSON(e.target.files[0]);
-      e.target.value = '';
-    });
-    els.clearAllBtn.addEventListener('click', () => {
-      if (confirm('確定清除全部行程？')) {
-        items = []; save(); render();
-      }
-    });
-    els.tripName.addEventListener('input', save);
-    els.tripLocation.addEventListener('input', save);
-
-    load();
-  </script>
 </body>
 </html>
