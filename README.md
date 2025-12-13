@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <title>旅行 App 模擬</title>
   <style>
     body {
@@ -12,13 +12,7 @@
       color: #fff;
     }
     .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: -1; }
-    header {
-      padding: 10px;
-      font-size: 14px;
-      background: rgba(0,0,0,0.5);
-      position: sticky;
-      top: 0;
-    }
+    header { padding: 10px; font-size: 14px; background: rgba(0,0,0,0.5); position: sticky; top: 0; }
     .subtitle { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
     header .rate { font-weight: bold; }
     main { padding: 15px; }
@@ -91,85 +85,88 @@
   </nav>
 
   <script>
-    // 匯率
-    async function loadRate(){
-      try{
-        const res = await fetch('https://api.exchangerate.host/latest?base=JPY&symbols=HKD');
-        const data = await res.json();
-        const rate = data.rates.HKD;
-        document.getElementById('rate').textContent = rate.toFixed(4);
-        window.jpyRate = rate;
-      }catch(e){
-        document.getElementById('rate').textContent = '請手動輸入';
-        window.jpyRate = 0.055;
+    document.addEventListener("DOMContentLoaded", function(){
+      // 匯率
+      async function loadRate(){
+        try{
+          const res = await fetch('https://api.exchangerate.host/latest?base=JPY&symbols=HKD');
+          const data = await res.json();
+          const rate = data.rates.HKD;
+          document.getElementById('rate').textContent = rate.toFixed(4);
+          window.jpyRate = rate;
+        }catch(e){
+          document.getElementById('rate').textContent = '請手動輸入';
+          window.jpyRate = 0.055;
+        }
       }
-    }
-    loadRate();
+      loadRate();
 
-    // Tab 切換
-    document.querySelectorAll('nav button').forEach(btn=>{
-      btn.addEventListener('click',()=>{
-        document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
-        document.getElementById(btn.dataset.view).classList.add('active');
-        document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
-        btn.classList.add('active');
+      // Tab 切換
+      document.querySelectorAll('nav button').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+          document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
+          document.getElementById(btn.dataset.view).classList.add('active');
+          document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+          btn.classList.add('active');
+        });
       });
-    });
 
-    // 行程表
-    const itinerary=[];
-    document.getElementById('it_add').addEventListener('click',()=>{
-      const title=document.getElementById('it_title').value;
-      const date=document.getElementById('it_date').value;
-      const time=document.getElementById('it_time').value;
-      const place=document.getElementById('it_place').value;
-      if(!title){alert("請輸入行程項目");return;}
-      itinerary.push({title,date,time,place});
-      renderItinerary();
-      syncMapDates();
-    });
-    function renderItinerary(){
-      const list=document.getElementById('it_list');
-      list.innerHTML='';
-      itinerary.forEach((it,index)=>{
-        const div=document.createElement('div');
-        div.className='item';
-        div.innerHTML=`<span>${it.date} ${it.time} - ${it.title} @ ${it.place}</span>
-                       <button onclick="deleteItinerary(${index})">刪除</button>`;
-        list.appendChild(div);
+      // 行程表
+      const itinerary=[];
+      document.getElementById('it_add').addEventListener('click',()=>{
+        const title=document.getElementById('it_title').value;
+        const date=document.getElementById('it_date').value;
+        const time=document.getElementById('it_time').value;
+        const place=document.getElementById('it_place').value;
+        if(!title){alert("請輸入行程項目");return;}
+        itinerary.push({title,date,time,place});
+        renderItinerary();
+        syncMapDates();
       });
-    }
-    function deleteItinerary(index){
-      itinerary.splice(index,1);
-      renderItinerary();
-      syncMapDates();
-    }
-
-    // 地圖依日期顯示路徑
-    function syncMapDates(){
-      const sel=document.getElementById('map_date');
-      sel.innerHTML='';
-      const dates=[...new Set(itinerary.map(it=>it.date).filter(Boolean))];
-      if(!dates.length){
-        const opt=document.createElement('option');
-        opt.value=''; opt.textContent='請先新增行程';
-        sel.appendChild(opt);
-        document.getElementById('map_iframe').src='';
-        return;
+      function renderItinerary(){
+        const list=document.getElementById('it_list');
+        list.innerHTML='';
+        itinerary.forEach((it,index)=>{
+          const div=document.createElement('div');
+          div.className='item';
+          div.innerHTML=`<span>${it.date} ${it.time} - ${it.title} @ ${it.place}</span>
+                         <button onclick="deleteItinerary(${index})">刪除</button>`;
+          list.appendChild(div);
+        });
       }
-      dates.forEach(d=>{
-        const opt=document.createElement('option');
-        opt.value=d; opt.textContent=d;
-        sel.appendChild(opt);
-      });
-    }
-    function setMapByDate(date){
-      if(!date){document.getElementById('map_iframe').src='';return;}
-      const places=itinerary.filter(it=>it.date===date).map(it=>it.place).filter(Boolean);
-      if(!places.length){document.getElementById('map_iframe').src='';return;}
-      const url='https://www.google.com/maps/dir/'+places.map(encodeURIComponent).join('/');
-      document.getElementById('map_iframe').src=url;
-    }
-    document.getElementById('map_date').addEventListener('change',e=>setMapByDate(e.target.value));
-    document.getElementById('map_open').addEventListener('click',()=>{
-      const date=document.getElementById('map_date').value;
+      window.deleteItinerary=function(index){
+        itinerary.splice(index,1);
+        renderItinerary();
+        syncMapDates();
+      }
+
+      // 地圖依日期顯示路徑
+      function syncMapDates(){
+        const sel=document.getElementById('map_date');
+        sel.innerHTML='';
+        const dates=[...new Set(itinerary.map(it=>it.date).filter(Boolean))];
+        if(!dates.length){
+          const opt=document.createElement('option');
+          opt.value=''; opt.textContent='請先新增行程';
+          sel.appendChild(opt);
+          document.getElementById('map_iframe').src='';
+          return;
+        }
+        dates.forEach(d=>{
+          const opt=document.createElement('option');
+          opt.value=d; opt.textContent=d;
+          sel.appendChild(opt);
+        });
+      }
+      function setMapByDate(date){
+        if(!date){document.getElementById('map_iframe').src='';return;}
+        const places=itinerary.filter(it=>it.date===date).map(it=>it.place).filter(Boolean);
+        if(!places.length){document.getElementById('map_iframe').src='';return;}
+        const url='https://www.google.com/maps/dir/'+places.map(encodeURIComponent).join('/');
+        document.getElementById('map_iframe').src=url;
+      }
+      document.getElementById('map_date').addEventListener('change',e=>setMapByDate(e.target.value));
+      document.getElementById('map_open').addEventListener('click',()=>{
+        const date=document.getElementById('map_date').value;
+        const places=itinerary.filter(it=>it.date===date).map(it=>it.place).filter(Boolean);
+        if(places.length
