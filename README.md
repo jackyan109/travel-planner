@@ -27,9 +27,7 @@
     header .rate {
       font-weight: bold;
     }
-    main {
-      padding: 15px;
-    }
+    main { padding: 15px; }
     section {
       display: none;
       background: rgba(0,0,0,0.5);
@@ -51,9 +49,7 @@
       font-size: 14px;
       cursor: pointer;
     }
-    nav button.active {
-      background: rgba(255,255,255,0.2);
-    }
+    nav button.active { background: rgba(255,255,255,0.2); }
     input, textarea {
       width: 100%;
       padding: 8px;
@@ -88,7 +84,7 @@
       <input id="it_date" type="date">
       <input id="it_time" type="time">
       <input id="it_place" placeholder="地點">
-      <button onclick="addItinerary()">新增行程</button>
+      <button id="it_add">新增行程</button>
       <div id="it_list" class="list"></div>
     </section>
 
@@ -104,7 +100,7 @@
       <h2>預算表</h2>
       <input id="bd_title" placeholder="項目">
       <input id="bd_amount" type="number" placeholder="金額 (JPY)">
-      <button onclick="addBudget()">新增項目</button>
+      <button id="bd_add">新增項目</button>
       <div id="bd_list" class="list"></div>
       <div>合計：<span id="bd_sum">¥0 → HK$0</span></div>
     </section>
@@ -115,17 +111,17 @@
       <input id="sp_title" placeholder="品項">
       <input id="sp_price" type="number" placeholder="價格 (JPY)">
       <input id="sp_photo" type="file" accept="image/*">
-      <button onclick="addShopping()">新增品項</button>
+      <button id="sp_add">新增品項</button>
       <div id="sp_list" class="list"></div>
       <div class="thumbs" id="sp_thumbs"></div>
     </section>
   </main>
 
   <nav>
-    <button class="active" onclick="show('itinerary')">行程表</button>
-    <button onclick="show('map')">地圖</button>
-    <button onclick="show('budget')">預算表</button>
-    <button onclick="show('shopping')">購物表</button>
+    <button class="active" data-view="itinerary">行程表</button>
+    <button data-view="map">地圖</button>
+    <button data-view="budget">預算表</button>
+    <button data-view="shopping">購物表</button>
   </nav>
 
   <script>
@@ -145,27 +141,30 @@
     loadRate();
 
     // Tab 切換
-    function show(id){
-      document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
-      document.getElementById(id).classList.add('active');
-      document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
-      document.querySelector(`nav button[onclick="show('${id}')"]`).classList.add('active');
-    }
+    document.querySelectorAll('nav button').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
+        document.getElementById(btn.dataset.view).classList.add('active');
+        document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
 
     // 行程表
-    const itinerary = [];
-    function addItinerary(){
+    const itinerary=[];
+    document.getElementById('it_add').addEventListener('click',()=>{
       const title=document.getElementById('it_title').value;
       const date=document.getElementById('it_date').value;
       const time=document.getElementById('it_time').value;
       const place=document.getElementById('it_place').value;
+      if(!title){alert("請輸入行程項目");return;}
       itinerary.push({title,date,time,place});
       renderItinerary();
-    }
+    });
     function renderItinerary(){
       const list=document.getElementById('it_list');
       list.innerHTML='';
-      itinerary.forEach((it,i)=>{
+      itinerary.forEach(it=>{
         const div=document.createElement('div');
         div.className='item';
         div.textContent=`${it.date} ${it.time} - ${it.title} @ ${it.place}`;
@@ -189,12 +188,13 @@
 
     // 預算表
     const budget=[];
-    function addBudget(){
+    document.getElementById('bd_add').addEventListener('click',()=>{
       const title=document.getElementById('bd_title').value;
       const amount=Number(document.getElementById('bd_amount').value);
+      if(!title||!amount){alert("請輸入項目與金額");return;}
       budget.push({title,amount});
       renderBudget();
-    }
+    });
     function renderBudget(){
       const list=document.getElementById('bd_list');
       list.innerHTML='';
@@ -212,21 +212,12 @@
 
     // 購物表
     const shopping=[];
-    function addShopping(){
+    document.getElementById('sp_add').addEventListener('click',()=>{
       const title=document.getElementById('sp_title').value;
       const price=document.getElementById('sp_price').value;
       const file=document.getElementById('sp_photo').files[0];
-      const reader=new FileReader();
-      reader.onload=function(e){
-        shopping.push({title,price,photo:e.target.result});
-        renderShopping();
-      };
-      if(file){ reader.readAsDataURL(file); } else {
-        shopping.push({title,price});
-        renderShopping();
-      }
-    }
-    function renderShopping(){
-      const list=document.getElementById('sp_list');
-      const thumbs=document.getElementById('sp_thumbs');
-      list.innerHTML=''; thumbs
+      if(!title){alert("請輸入品項");return;}
+      if(file){
+        const reader=new FileReader();
+        reader.onload=function(e){
+          shopping
