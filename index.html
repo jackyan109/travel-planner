@@ -457,12 +457,60 @@ document.getElementById("add-itinerary").onclick = () => {
     document.getElementById("itinerary-place").value = "";
 };
 
-/* ✅ Leaflet 地圖 */
+/* ✅ Leaflet 地圖初始化 */
 let map = L.map("map").setView([35.6804, 139.7690], 12);
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
 
 let markers = [];
 
+/* ✅ ✅ ✅ 超高速版 updateMap（含快取） */
+async function updateMap(date) {
+    markers.forEach(m => map.removeLayer(m));
+    markers = [];
+
+    const data = loadItinerary();
+    if (!data[date]) return;
+
+    // ✅ 讀取快取
+    let cache = JSON.parse(localStorage.getItem("geoCache") || "{}");
+
+    for (const place of data[date]) {
+        // ✅ 如果快取已有 → 直接用
+        if (cache[place]) {
+            const { lat, lon } = cache[place];
+            const marker = L.marker([lat, lon]).addTo(map);
+            marker.bindPopup(place);
+            markers.push(marker);
+            continue;
+        }
+
+        // ✅ 沒有快取 → 呼叫 Nominatim
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(place)}`;
+        const res = await fetch(url);
+        const json = await res.json();
+
+        if (json.length > 0) {
+            const lat = parseFloat(json[0].lat);
+            const lon = parseFloat(json[0].lon);
+
+            // ✅ 存入快取
+            cache[place] = { lat, lon };
+            localStorage.setItem("geoCache", JSON.stringify(cache));
+
+            const marker = L.marker([lat, lon]).addTo(map);
+            marker.bindPopup(place);
+            markers.push(marker);
+        }
+    }
+
+    // ✅ 自動縮放到所有標記
+    if (markers.length > 0) {
+        const group = L.featureGroup(markers);
+        map.fitBounds(group.getBounds(), { padding: [30, 30] });
+    }
+}
+
+/* ✅ 日期選擇器更新 */
 function updateMapDateSelector() {
     const data = loadItinerary();
     const selector = document.getElementById("map-date-selector");
@@ -484,34 +532,6 @@ function updateMapDateSelector() {
     if (dates.length > 0) {
         selector.value = dates[0];
         updateMap(dates[0]);
-    }
-}
-
-async function updateMap(date) {
-    markers.forEach(m => map.removeLayer(m));
-    markers = [];
-
-    const data = loadItinerary();
-    if (!data[date]) return;
-
-    for (const place of data[date]) {
-        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(place)}`;
-        const res = await fetch(url);
-        const json = await res.json();
-
-        if (json.length > 0) {
-            const lat = json[0].lat;
-            const lon = json[0].lon;
-
-            const marker = L.marker([lat, lon]).addTo(map);
-            marker.bindPopup(place);
-            markers.push(marker);
-        }
-    }
-
-    if (markers.length > 0) {
-        const group = L.featureGroup(markers);
-        map.fitBounds(group.getBounds(), { padding: [30, 30] });
     }
 }
 
