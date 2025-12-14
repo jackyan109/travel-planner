@@ -281,27 +281,28 @@
 <!-- ✅ Leaflet JS -->
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>
-/* ✅ 匯率更新（含最後更新時間 + 點擊刷新） */
+/* ✅ 匯率更新（穩定 API + 最後更新時間 + 點擊刷新） */
 async function updateRate(showAnimation = true) {
     const badge = document.getElementById("rate-badge");
 
     try {
         badge.textContent = "更新中…";
 
-        const res = await fetch("https://api.exchangerate.host/latest?base=JPY&symbols=HKD");
+        // ✅ 改用穩定 API（open.er-api.com）
+        const res = await fetch("https://open.er-api.com/v6/latest/JPY");
         const data = await res.json();
-        const rate = data.rates.HKD;
 
+        const rate = data.rates.HKD;
         window.currentRate = rate;
 
-        // ✅ 取得時間（HH:MM）
+        // ✅ 時間
         const now = new Date();
         const hh = String(now.getHours()).padStart(2, "0");
         const mm = String(now.getMinutes()).padStart(2, "0");
 
         badge.textContent = `[ ¥1 = HK$${rate.toFixed(4)} | 更新 ${hh}:${mm} ]`;
 
-        // ✅ 小動畫（亮一下）
+        // ✅ 動畫效果
         if (showAnimation) {
             badge.style.transition = "background 0.3s";
             badge.style.background = "#005fcc";
@@ -311,7 +312,8 @@ async function updateRate(showAnimation = true) {
         }
 
         updateBudgetTotals();
-    } catch {
+    } catch (err) {
+        console.error(err);
         badge.textContent = "[匯率更新失敗]";
     }
 }
@@ -322,7 +324,7 @@ document.addEventListener("DOMContentLoaded", () => {
     badge.style.cursor = "pointer";
 
     badge.addEventListener("click", () => {
-        updateRate(true); // 手動刷新時顯示動畫
+        updateRate(true);
     });
 });
 
@@ -522,7 +524,7 @@ async function updateMap(date) {
             cache[place] = { lat, lon };
             localStorage.setItem("geoCache", JSON.stringify(cache));
 
-            const marker = L.marker([lat, lon]).addTo(map);
+            const marker = L.marker([lat, lon]).addAddTo(map);
             marker.bindPopup(place);
             markers.push(marker);
         }
@@ -715,5 +717,3 @@ document.addEventListener("DOMContentLoaded", () => {
 
 </body>
 </html>
-
-
