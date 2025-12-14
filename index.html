@@ -9,10 +9,25 @@
         body {
             margin: 0;
             font-family: Arial, sans-serif;
-            background: #f5f5f5;
+
+            /* ✅ 背景圖（你提供的） */
+            background-image: url("https://d1grca2t3zpuug.cloudfront.net/2025/06/f32837568_m-870x500-1750991180.webp");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
         }
 
-        /* ✅ 新增：頂部小標題 */
+        /* ✅ App 模擬外框 */
+        .app-container {
+            max-width: 480px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(10px);
+            min-height: 100vh;
+            padding-bottom: 50px;
+        }
+
+        /* ✅ 頂部小標題 */
         .top-banner {
             position: sticky;
             top: 0;
@@ -32,7 +47,7 @@
             text-align: center;
             border-bottom: 1px solid #ddd;
             position: sticky;
-            top: 48px; /* ✅ 下移以避開頂部小標題 */
+            top: 48px;
             z-index: 999;
         }
 
@@ -40,32 +55,60 @@
             padding: 15px;
         }
 
-        /* ✅ 地圖區塊 */
-        #map-section {
-            margin-top: 20px;
+        section {
+            background: white;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
         }
 
-        #map-date-selector {
-            margin-bottom: 10px;
-            padding: 8px;
-            font-size: 16px;
+        h2 {
+            margin-top: 0;
+        }
+
+        input, select, button {
             width: 100%;
+            padding: 10px;
+            margin-top: 8px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+
+        button {
+            background: #0078ff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #005fcc;
         }
 
         iframe {
             width: 100%;
             height: 350px;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
         }
 
-        /* 你原本的 CSS 我全部保留（略） */
+        ul {
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
     </style>
 </head>
 
 <body>
+<div class="app-container">
 
-    <!-- ✅ 新增：頂部小標題 -->
+    <!-- ✅ 頂部小標題 -->
     <div class="top-banner">🇯🇵 東京2025-2026</div>
 
     <header>
@@ -74,7 +117,7 @@
 
     <div class="container">
 
-        <!-- ✅ 新增：地圖日期選擇器 -->
+        <!-- ✅ 地圖區塊（含日期選擇器） -->
         <section id="map-section">
             <h2>地圖 Map</h2>
 
@@ -87,8 +130,7 @@
             </iframe>
         </section>
 
-        <!-- ✅ 以下是你原本的行程 / 預算 / 購物清單區塊（我全部保留） -->
-
+        <!-- ✅ 行程 -->
         <section id="itinerary-section">
             <h2>行程 Itinerary</h2>
             <input type="text" id="itinerary-date" placeholder="DD-MM-YYYY">
@@ -97,6 +139,7 @@
             <ul id="itinerary-list"></ul>
         </section>
 
+        <!-- ✅ 預算 -->
         <section id="budget-section">
             <h2>預算 Budget</h2>
             <input type="number" id="budget-jpy" placeholder="日圓 JPY">
@@ -104,6 +147,7 @@
             <p id="budget-result"></p>
         </section>
 
+        <!-- ✅ 購物清單 -->
         <section id="shopping-section">
             <h2>購物清單 Shopping List</h2>
             <input type="text" id="shopping-item" placeholder="物品名稱">
@@ -113,27 +157,20 @@
         </section>
 
     </div>
+</div>
 
-  <script>
-/* ================================
-   ✅ 讀取 localStorage 行程資料
-================================ */
+<!-- ✅ ✅ ✅ JavaScript（含地圖依日期切換） -->
+<script>
 function loadItineraryFromStorage() {
     const data = localStorage.getItem("itinerary");
     return data ? JSON.parse(data) : {};
 }
 
-/* ================================
-   ✅ 將 DD-MM-YYYY 轉成可排序格式
-================================ */
 function parseDateDDMMYYYY(dateStr) {
     const [dd, mm, yyyy] = dateStr.split("-").map(Number);
     return new Date(yyyy, mm - 1, dd);
 }
 
-/* ================================
-   ✅ 依日期更新地圖（多地點）
-================================ */
 function updateMapForDate(date, itinerary) {
     const places = itinerary[date];
 
@@ -143,22 +180,17 @@ function updateMapForDate(date, itinerary) {
         return;
     }
 
-    // ✅ 將地點用 + 連接，讓 Google Maps 顯示多個標記
     const query = places.map(p => encodeURIComponent(p)).join("+");
-
     const url = `https://www.google.com/maps?q=${query}`;
 
     document.getElementById("map-frame").src = url;
 }
 
-/* ================================
-   ✅ 初始化地圖日期選擇器
-================================ */
 function initMapDateSelector() {
     const itinerary = loadItineraryFromStorage();
     const selector = document.getElementById("map-date-selector");
 
-    selector.innerHTML = ""; // 清空
+    selector.innerHTML = "";
 
     const dates = Object.keys(itinerary);
 
@@ -167,10 +199,8 @@ function initMapDateSelector() {
         return;
     }
 
-    // ✅ 依 DD-MM-YYYY 排序
     dates.sort((a, b) => parseDateDDMMYYYY(a) - parseDateDDMMYYYY(b));
 
-    // ✅ 填入選項
     dates.forEach(date => {
         const option = document.createElement("option");
         option.value = date;
@@ -178,29 +208,19 @@ function initMapDateSelector() {
         selector.appendChild(option);
     });
 
-    // ✅ 自動選擇第一個有行程的日期
     const firstDate = dates[0];
     selector.value = firstDate;
 
-    // ✅ 更新地圖
     updateMapForDate(firstDate, itinerary);
 
-    // ✅ 當使用者切換日期 → 更新地圖
     selector.addEventListener("change", () => {
         updateMapForDate(selector.value, itinerary);
     });
 }
 
-/* ================================
-   ✅ 原本的功能（行程 / 預算 / 購物清單）
-   ✅ 我全部保留，只補上 initMapDateSelector()
-================================ */
 document.addEventListener("DOMContentLoaded", () => {
 
-    /* ✅ 初始化地圖日期選擇器 */
     initMapDateSelector();
-
-    /* ✅ 以下是你原本的 JS，我全部保留 */
 
     const itineraryInputDate = document.getElementById("itinerary-date");
     const itineraryInputPlace = document.getElementById("itinerary-place");
@@ -213,7 +233,7 @@ document.addEventListener("DOMContentLoaded", () => {
         itineraryList.innerHTML = "";
         for (const date in itinerary) {
             const places = itinerary[date];
-            places.forEach((place, index) => {
+            places.forEach((place) => {
                 const li = document.createElement("li");
                 li.textContent = `${date}: ${place}`;
                 itineraryList.appendChild(li);
@@ -233,19 +253,17 @@ document.addEventListener("DOMContentLoaded", () => {
         localStorage.setItem("itinerary", JSON.stringify(itinerary));
 
         renderItinerary();
-        initMapDateSelector(); // ✅ 新增行程後更新地圖日期選擇器
+        initMapDateSelector();
     });
 
     renderItinerary();
 
-    /* ✅ 預算換算 */
     document.getElementById("convert-budget").addEventListener("click", () => {
         const jpy = Number(document.getElementById("budget-jpy").value);
         const hkd = (jpy * 0.052).toFixed(2);
         document.getElementById("budget-result").textContent = `HKD $${hkd}`;
     });
 
-    /* ✅ 購物清單 */
     const shoppingList = document.getElementById("shopping-list");
     const addShoppingBtn = document.getElementById("add-shopping");
 
@@ -268,6 +286,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         shoppingList.appendChild(li);
     });
+
+});
+</script>
+
+</body>
+</html>
 
 });
 </script>
