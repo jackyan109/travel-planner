@@ -283,23 +283,50 @@
 <!-- ✅ Leaflet JS -->
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>
-/* ✅ 匯率更新 */
-async function updateRate() {
+/* ✅ 匯率更新（含最後更新時間 + 點擊刷新） */
+async function updateRate(showAnimation = true) {
+    const badge = document.getElementById("rate-badge");
+
     try {
+        badge.textContent = "更新中…";
+
         const res = await fetch("https://api.exchangerate.host/latest?base=JPY&symbols=HKD");
         const data = await res.json();
         const rate = data.rates.HKD;
 
         window.currentRate = rate;
 
-        document.getElementById("rate-badge").textContent =
-            `[ ¥1 = HK$${rate.toFixed(4)} ]`;
+        // ✅ 取得時間（HH:MM）
+        const now = new Date();
+        const hh = String(now.getHours()).padStart(2, "0");
+        const mm = String(now.getMinutes()).padStart(2, "0");
+
+        badge.textContent = `[ ¥1 = HK$${rate.toFixed(4)} | 更新 ${hh}:${mm} ]`;
+
+        // ✅ 小動畫（亮一下）
+        if (showAnimation) {
+            badge.style.transition = "background 0.3s";
+            badge.style.background = "#005fcc";
+            setTimeout(() => {
+                badge.style.background = "#0078ff";
+            }, 300);
+        }
 
         updateBudgetTotals();
     } catch {
-        document.getElementById("rate-badge").textContent = "[匯率更新失敗]";
+        badge.textContent = "[匯率更新失敗]";
     }
 }
+
+/* ✅ 點一下匯率 → 手動刷新 */
+document.addEventListener("DOMContentLoaded", () => {
+    const badge = document.getElementById("rate-badge");
+    badge.style.cursor = "pointer";
+
+    badge.addEventListener("click", () => {
+        updateRate(true); // 手動刷新時顯示動畫
+    });
+});
 
 /* ✅ 倒數計時 */
 function initCountdown() {
@@ -679,7 +706,7 @@ document.getElementById("add-shopping").onclick = () => {
 
 /* ✅ 初始化 */
 document.addEventListener("DOMContentLoaded", () => {
-    updateRate();
+    updateRate(false); // 第一次載入不需要動畫
     initCountdown();
     initBottomNav();
     renderItinerary();
@@ -690,3 +717,4 @@ document.addEventListener("DOMContentLoaded", () => {
 
 </body>
 </html>
+
