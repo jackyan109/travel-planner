@@ -9,25 +9,21 @@
         body {
             margin: 0;
             font-family: Arial, sans-serif;
-
-            /* ✅ 背景圖（你提供的） */
             background-image: url("https://d1grca2t3zpuug.cloudfront.net/2025/06/f32837568_m-870x500-1750991180.webp");
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
         }
 
-        /* ✅ App 模擬外框 */
         .app-container {
             max-width: 480px;
             margin: 0 auto;
             background: rgba(255, 255, 255, 0.88);
             backdrop-filter: blur(10px);
             min-height: 100vh;
-            padding-bottom: 50px;
+            padding-bottom: 80px;
         }
 
-        /* ✅ 頂部小標題 */
         .top-banner {
             position: sticky;
             top: 0;
@@ -41,13 +37,40 @@
             border-bottom: 1px solid #ddd;
         }
 
+        .countdown-card {
+            background: white;
+            margin: 10px;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            text-align: center;
+        }
+
+        .countdown-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .countdown-time {
+            font-size: 22px;
+            margin-top: 8px;
+            font-weight: bold;
+            color: #0078ff;
+        }
+
+        .countdown-route {
+            margin-top: 5px;
+            font-size: 14px;
+            color: #444;
+        }
+
         header {
             background: #fff;
             padding: 15px;
             text-align: center;
             border-bottom: 1px solid #ddd;
             position: sticky;
-            top: 48px;
+            top: 120px;
             z-index: 999;
         }
 
@@ -75,6 +98,7 @@
             border-radius: 8px;
             border: 1px solid #ccc;
             font-size: 16px;
+            box-sizing: border-box;
         }
 
         button {
@@ -96,20 +120,102 @@
         }
 
         ul {
-            padding-left: 20px;
+            padding-left: 0;
+            list-style: none;
         }
 
-        li {
-            margin-bottom: 8px;
+        .date-group {
+            margin-bottom: 12px;
+        }
+
+        .date-title {
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .itinerary-item {
+            margin-bottom: 6px;
+            padding: 8px;
+            background: #f7f7f7;
+            border-radius: 6px;
+            cursor: grab;
+        }
+
+        .itinerary-item.dragging {
+            opacity: 0.5;
+        }
+
+        .drop-target {
+            border: 2px dashed #0078ff;
+        }
+
+        #shopping-list li {
+            background: #f7f7f7;
+            padding: 8px;
+            border-radius: 6px;
+            margin-bottom: 6px;
+        }
+
+        #shopping-list img {
+            display: block;
+            margin-top: 4px;
+            max-width: 100px;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 480px;
+            max-width: 100%;
+            background: white;
+            border-top: 1px solid #ccc;
+            display: flex;
+            justify-content: space-around;
+            padding: 6px 0;
+            z-index: 9999;
+        }
+
+        .nav-btn {
+            text-align: center;
+            font-size: 13px;
+            color: #555;
+            cursor: pointer;
+        }
+
+        .nav-btn span {
+            display: block;
+        }
+
+        .nav-btn-icon {
+            font-size: 18px;
+        }
+
+        .nav-btn-label {
+            font-size: 12px;
+        }
+
+        .nav-btn.active {
+            color: #0078ff;
+            font-weight: bold;
+        }
+
+        .hidden {
+            display: none;
         }
     </style>
 </head>
-
 <body>
 <div class="app-container">
 
-    <!-- ✅ 頂部小標題 -->
     <div class="top-banner">🇯🇵 東京2025-2026</div>
+
+    <div class="countdown-card">
+        <div class="countdown-title">✈️ 出發倒數</div>
+        <div id="countdown" class="countdown-time">計算中...</div>
+        <div class="countdown-route">HKG → HND</div>
+    </div>
 
     <header>
         <h1>Travel Planner</h1>
@@ -117,29 +223,24 @@
 
     <div class="container">
 
-        <!-- ✅ 地圖區塊（含日期選擇器） -->
         <section id="map-section">
             <h2>地圖 Map</h2>
-
             <label>📅 選擇日期：</label>
             <select id="map-date-selector"></select>
-
             <iframe id="map-frame"
-                src="https://www.google.com/maps?q=Tokyo"
-                allowfullscreen>
+                    src="https://www.google.com/maps?q=Tokyo"
+                    allowfullscreen>
             </iframe>
         </section>
 
-        <!-- ✅ 行程 -->
         <section id="itinerary-section">
             <h2>行程 Itinerary</h2>
             <input type="text" id="itinerary-date" placeholder="DD-MM-YYYY">
             <input type="text" id="itinerary-place" placeholder="地點">
             <button id="add-itinerary">新增行程</button>
-            <ul id="itinerary-list"></ul>
+            <div id="itinerary-list"></div>
         </section>
 
-        <!-- ✅ 預算 -->
         <section id="budget-section">
             <h2>預算 Budget</h2>
             <input type="number" id="budget-jpy" placeholder="日圓 JPY">
@@ -147,7 +248,6 @@
             <p id="budget-result"></p>
         </section>
 
-        <!-- ✅ 購物清單 -->
         <section id="shopping-section">
             <h2>購物清單 Shopping List</h2>
             <input type="text" id="shopping-item" placeholder="物品名稱">
@@ -159,11 +259,33 @@
     </div>
 </div>
 
-<!-- ✅ ✅ ✅ JavaScript（含地圖依日期切換） -->
+<div class="bottom-nav">
+    <div class="nav-btn active" data-target="map-section">
+        <span class="nav-btn-icon">📌</span>
+        <span class="nav-btn-label">地圖</span>
+    </div>
+    <div class="nav-btn" data-target="itinerary-section">
+        <span class="nav-btn-icon">📅</span>
+        <span class="nav-btn-label">行程</span>
+    </div>
+    <div class="nav-btn" data-target="budget-section">
+        <span class="nav-btn-icon">💰</span>
+        <span class="nav-btn-label">預算</span>
+    </div>
+    <div class="nav-btn" data-target="shopping-section">
+        <span class="nav-btn-icon">🛍️</span>
+        <span class="nav-btn-label">購物</span>
+    </div>
+</div>
+
 <script>
 function loadItineraryFromStorage() {
     const data = localStorage.getItem("itinerary");
     return data ? JSON.parse(data) : {};
+}
+
+function saveItineraryToStorage(itinerary) {
+    localStorage.setItem("itinerary", JSON.stringify(itinerary));
 }
 
 function parseDateDDMMYYYY(dateStr) {
@@ -173,93 +295,256 @@ function parseDateDDMMYYYY(dateStr) {
 
 function updateMapForDate(date, itinerary) {
     const places = itinerary[date];
+    const frame = document.getElementById("map-frame");
 
     if (!places || places.length === 0) {
-        document.getElementById("map-frame").src =
-            "https://www.google.com/maps?q=Tokyo";
+        frame.src = "https://www.google.com/maps?q=Tokyo";
         return;
     }
 
     const query = places.map(p => encodeURIComponent(p)).join("+");
-    const url = `https://www.google.com/maps?q=${query}`;
-
-    document.getElementById("map-frame").src = url;
+    frame.src = `https://www.google.com/maps?q=${query}`;
 }
 
 function initMapDateSelector() {
     const itinerary = loadItineraryFromStorage();
     const selector = document.getElementById("map-date-selector");
-
     selector.innerHTML = "";
 
     const dates = Object.keys(itinerary);
 
     if (dates.length === 0) {
-        selector.innerHTML = `<option>沒有行程</option>`;
+        selector.innerHTML = '<option>沒有行程</option>';
+        document.getElementById("map-frame").src = "https://www.google.com/maps?q=Tokyo";
         return;
     }
 
     dates.sort((a, b) => parseDateDDMMYYYY(a) - parseDateDDMMYYYY(b));
 
     dates.forEach(date => {
+        if (!itinerary[date] || itinerary[date].length === 0) return;
         const option = document.createElement("option");
         option.value = date;
         option.textContent = date;
         selector.appendChild(option);
     });
 
-    const firstDate = dates[0];
-    selector.value = firstDate;
+    if (selector.options.length === 0) {
+        selector.innerHTML = '<option>沒有行程</option>';
+        document.getElementById("map-frame").src = "https://www.google.com/maps?q=Tokyo";
+        return;
+    }
 
+    const firstDate = selector.options[0].value;
+    selector.value = firstDate;
     updateMapForDate(firstDate, itinerary);
 
-    selector.addEventListener("change", () => {
-        updateMapForDate(selector.value, itinerary);
+    selector.onchange = () => {
+        const selected = selector.value;
+        updateMapForDate(selected, loadItineraryFromStorage());
+    };
+}
+
+function renderItineraryList() {
+    const itinerary = loadItineraryFromStorage();
+    const container = document.getElementById("itinerary-list");
+    container.innerHTML = "";
+
+    const dates = Object.keys(itinerary).sort((a, b) => parseDateDDMMYYYY(a) - parseDateDDMMYYYY(b));
+
+    dates.forEach(date => {
+        const places = itinerary[date];
+        if (!places || places.length === 0) return;
+
+        const groupDiv = document.createElement("div");
+        groupDiv.className = "date-group";
+        groupDiv.dataset.date = date;
+
+        const title = document.createElement("div");
+        title.className = "date-title";
+        title.textContent = date;
+        groupDiv.appendChild(title);
+
+        const list = document.createElement("div");
+        list.className = "date-list";
+
+        places.forEach((place, index) => {
+            const item = document.createElement("div");
+            item.className = "itinerary-item";
+            item.draggable = true;
+            item.textContent = place;
+            item.dataset.index = index;
+            item.dataset.date = date;
+            list.appendChild(item);
+        });
+
+        groupDiv.appendChild(list);
+        container.appendChild(groupDiv);
+    });
+
+    enableDragAndDrop();
+}
+
+function enableDragAndDrop() {
+    const items = document.querySelectorAll(".itinerary-item");
+
+    let draggedItem = null;
+    let draggedFromDate = null;
+
+    items.forEach(item => {
+        item.addEventListener("dragstart", () => {
+            draggedItem = item;
+            draggedFromDate = item.dataset.date;
+            item.classList.add("dragging");
+        });
+
+        item.addEventListener("dragend", () => {
+            if (draggedItem) draggedItem.classList.remove("dragging");
+            draggedItem = null;
+            draggedFromDate = null;
+            document.querySelectorAll(".date-list").forEach(list => list.classList.remove("drop-target"));
+        });
+    });
+
+    const lists = document.querySelectorAll(".date-list");
+
+    lists.forEach(list => {
+        list.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            list.classList.add("drop-target");
+        });
+
+        list.addEventListener("dragleave", () => {
+            list.classList.remove("drop-target");
+        });
+
+        list.addEventListener("drop", (e) => {
+            e.preventDefault();
+            list.classList.remove("drop-target");
+            if (!draggedItem) return;
+
+            const children = Array.from(list.querySelectorAll(".itinerary-item"));
+            const afterElement = children.find(child => {
+                const box = child.getBoundingClientRect();
+                return e.clientY < box.top + box.height / 2;
+            });
+
+            if (afterElement == null) {
+                list.appendChild(draggedItem);
+            } else {
+                list.insertBefore(draggedItem, afterElement);
+            }
+
+            const date = list.parentElement.dataset.date;
+            updateItineraryOrder(date);
+            initMapDateSelector();
+        });
     });
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+function updateItineraryOrder(date) {
+    const itinerary = loadItineraryFromStorage();
+    const listDiv = document.querySelector(`.date-group[data-date="${date}"] .date-list`);
+    const items = listDiv.querySelectorAll(".itinerary-item");
 
-    initMapDateSelector();
+    const newOrder = [];
+    items.forEach(item => {
+        newOrder.push(item.textContent);
+    });
 
-    const itineraryInputDate = document.getElementById("itinerary-date");
-    const itineraryInputPlace = document.getElementById("itinerary-place");
-    const itineraryList = document.getElementById("itinerary-list");
-    const addItineraryBtn = document.getElementById("add-itinerary");
+    itinerary[date] = newOrder;
+    saveItineraryToStorage(itinerary);
+}
 
-    let itinerary = loadItineraryFromStorage();
+function initBottomNav() {
+    const navBtns = document.querySelectorAll(".nav-btn");
+    const sections = {
+        "map-section": document.getElementById("map-section"),
+        "itinerary-section": document.getElementById("itinerary-section"),
+        "budget-section": document.getElementById("budget-section"),
+        "shopping-section": document.getElementById("shopping-section")
+    };
 
-    function renderItinerary() {
-        itineraryList.innerHTML = "";
-        for (const date in itinerary) {
-            const places = itinerary[date];
-            places.forEach((place) => {
-                const li = document.createElement("li");
-                li.textContent = `${date}: ${place}`;
-                itineraryList.appendChild(li);
-            });
+    function showSection(id) {
+        Object.keys(sections).forEach(key => {
+            sections[key].classList.toggle("hidden", key !== id);
+        });
+    }
+
+    showSection("map-section");
+
+    navBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+            navBtns.forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            const target = btn.dataset.target;
+            showSection(target);
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+    });
+}
+
+function initCountdown() {
+    const countdownEl = document.getElementById("countdown");
+
+    const departure = new Date(2025, 11, 25, 23, 55);
+    const arrival = new Date(2025, 11, 26, 4, 45);
+
+    function update() {
+        const now = new Date();
+
+        if (now < departure) {
+            const diff = departure - now;
+            const sec = Math.floor(diff / 1000);
+            const days = Math.floor(sec / 86400);
+            const hours = Math.floor((sec % 86400) / 3600);
+            const mins = Math.floor((sec % 3600) / 60);
+            const s = sec % 60;
+
+            countdownEl.textContent =
+                `${days} 天 ${hours} 小時 ${mins} 分 ${s} 秒`;
+        } else if (now >= departure && now < arrival) {
+            countdownEl.textContent = "已出發，前往東京中…";
+        } else {
+            countdownEl.textContent = "已抵達東京 HND";
         }
     }
 
-    addItineraryBtn.addEventListener("click", () => {
-        const date = itineraryInputDate.value.trim();
-        const place = itineraryInputPlace.value.trim();
+    update();
+    setInterval(update, 1000);
+}
 
+document.addEventListener("DOMContentLoaded", () => {
+    initCountdown();
+    initBottomNav();
+    initMapDateSelector();
+    renderItineraryList();
+
+    const itineraryDateInput = document.getElementById("itinerary-date");
+    const itineraryPlaceInput = document.getElementById("itinerary-place");
+    const addItineraryBtn = document.getElementById("add-itinerary");
+
+    addItineraryBtn.addEventListener("click", () => {
+        const date = itineraryDateInput.value.trim();
+        const place = itineraryPlaceInput.value.trim();
         if (!date || !place) return;
 
+        const itinerary = loadItineraryFromStorage();
         if (!itinerary[date]) itinerary[date] = [];
         itinerary[date].push(place);
+        saveItineraryToStorage(itinerary);
 
-        localStorage.setItem("itinerary", JSON.stringify(itinerary));
-
-        renderItinerary();
+        itineraryPlaceInput.value = "";
+        renderItineraryList();
         initMapDateSelector();
     });
 
-    renderItinerary();
-
     document.getElementById("convert-budget").addEventListener("click", () => {
         const jpy = Number(document.getElementById("budget-jpy").value);
+        if (!jpy) {
+            document.getElementById("budget-result").textContent = "";
+            return;
+        }
         const hkd = (jpy * 0.052).toFixed(2);
         document.getElementById("budget-result").textContent = `HKD $${hkd}`;
     });
@@ -279,22 +564,14 @@ document.addEventListener("DOMContentLoaded", () => {
         if (imgFile) {
             const img = document.createElement("img");
             img.src = URL.createObjectURL(imgFile);
-            img.style.width = "80px";
-            img.style.marginLeft = "10px";
             li.appendChild(img);
         }
 
         shoppingList.appendChild(li);
+        document.getElementById("shopping-item").value = "";
+        document.getElementById("shopping-image").value = "";
     });
-
 });
 </script>
-
-</body>
-</html>
-
-});
-</script>
-
 </body>
 </html>
