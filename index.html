@@ -25,6 +25,7 @@
             backdrop-filter: blur(10px);
             min-height: 100vh;
             padding-bottom: 80px;
+            position: relative;
         }
 
         .top-banner {
@@ -53,6 +54,7 @@
             font-weight: bold;
         }
 
+        /* ✅ 倒數計時卡片 */
         .countdown-card {
             background: white;
             margin: 10px;
@@ -153,7 +155,7 @@
             margin-left: 10px;
         }
 
-        /* ✅ 預算表格 */
+        /* ✅ 預算表格（簡潔版） */
         .budget-row {
             display: flex;
             justify-content: space-between;
@@ -280,7 +282,6 @@
 
 <!-- ✅ Leaflet JS -->
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
 <script>
 /* ✅ 匯率更新 */
 async function updateRate() {
@@ -552,4 +553,120 @@ function renderBudget() {
     list.innerHTML = "";
 
     data.forEach((row, index) => {
-        const div = document.create
+        const div = document.createElement("div");
+        div.className = "budget-row";
+
+        const col1 = document.createElement("div");
+        col1.className = "budget-col";
+        col1.textContent = row.date;
+
+        const col2 = document.createElement("div");
+        col2.className = "budget-col";
+        col2.textContent = row.item;
+
+        const col3 = document.createElement("div");
+        col3.className = "budget-col";
+        col3.textContent = `¥${row.amount.toLocaleString()}`;
+
+        const del = document.createElement("span");
+        del.className = "budget-delete";
+        del.textContent = "🗑️";
+        del.onclick = () => {
+            data.splice(index, 1);
+            saveBudget(data);
+            renderBudget();
+        };
+
+        div.appendChild(col1);
+        div.appendChild(col2);
+        div.appendChild(col3);
+        div.appendChild(del);
+
+        list.appendChild(div);
+    });
+
+    updateBudgetTotals();
+}
+
+/* ✅ 預算總額 */
+function updateBudgetTotals() {
+    const data = loadBudget();
+    const totalJPY = data.reduce((sum, row) => sum + row.amount, 0);
+
+    document.getElementById("budget-total-jpy").textContent =
+        `總日元：¥${totalJPY.toLocaleString()}`;
+
+    const rate = window.currentRate || 0.05;
+    const hkd = totalJPY * rate;
+
+    document.getElementById("budget-total-hkd").textContent =
+        `折合港元：HK$${hkd.toFixed(2)}`;
+}
+
+/* ✅ 底部導航 */
+function initBottomNav() {
+    const navBtns = document.querySelectorAll(".nav-btn");
+    const sections = {
+        "itinerary-section": document.getElementById("itinerary-section"),
+        "map-section": document.getElementById("map-section"),
+        "budget-section": document.getElementById("budget-section"),
+        "shopping-section": document.getElementById("shopping-section")
+    };
+
+    function showSection(id) {
+        Object.keys(sections).forEach(key => {
+            sections[key].classList.toggle("hidden", key !== id);
+        });
+    }
+
+    showSection("itinerary-section");
+
+    navBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+            navBtns.forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            const target = btn.dataset.target;
+            showSection(target);
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+    });
+}
+
+/* ✅ 購物清單 */
+document.getElementById("add-shopping").onclick = () => {
+    const item = document.getElementById("shopping-item").value.trim();
+    const imgFile = document.getElementById("shopping-image").files[0];
+
+    if (!item) return;
+
+    const li = document.createElement("li");
+    li.textContent = item;
+
+    if (imgFile) {
+        const img = document.createElement("img");
+        img.src = URL.createObjectURL(imgFile);
+        img.style.maxWidth = "100px";
+        img.style.display = "block";
+        img.style.marginTop = "5px";
+        li.appendChild(img);
+    }
+
+    document.getElementById("shopping-list").appendChild(li);
+
+    document.getElementById("shopping-item").value = "";
+    document.getElementById("shopping-image").value = "";
+};
+
+/* ✅ 初始化 */
+document.addEventListener("DOMContentLoaded", () => {
+    updateRate();
+    initCountdown();
+    initBottomNav();
+    renderItinerary();
+    updateMapDateSelector();
+    renderBudget();
+});
+</script>
+
+</body>
+</html>
