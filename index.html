@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Travel Planner</title>
 
+    <!-- ✅ Leaflet 地圖 CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
     <style>
         body {
             margin: 0;
@@ -37,6 +40,19 @@
             border-bottom: 1px solid #ddd;
         }
 
+        /* ✅ 匯率標籤 */
+        .rate-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: #0078ff;
+            color: white;
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
         .countdown-card {
             background: white;
             margin: 10px;
@@ -62,16 +78,6 @@
             margin-top: 5px;
             font-size: 14px;
             color: #444;
-        }
-
-        header {
-            background: #fff;
-            padding: 15px;
-            text-align: center;
-            border-bottom: 1px solid #ddd;
-            position: sticky;
-            top: 120px;
-            z-index: 999;
         }
 
         .container {
@@ -112,18 +118,14 @@
             background: #005fcc;
         }
 
-        iframe {
+        /* ✅ Leaflet 地圖 */
+        #map {
             width: 100%;
             height: 350px;
-            border: none;
             border-radius: 10px;
         }
 
-        ul {
-            padding-left: 0;
-            list-style: none;
-        }
-
+        /* ✅ 行程列表 */
         .date-group {
             margin-bottom: 12px;
         }
@@ -139,29 +141,39 @@
             background: #f7f7f7;
             border-radius: 6px;
             cursor: grab;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .itinerary-item.dragging {
-            opacity: 0.5;
+        .delete-btn {
+            color: red;
+            cursor: pointer;
+            font-size: 18px;
+            margin-left: 10px;
         }
 
-        .drop-target {
-            border: 2px dashed #0078ff;
+        /* ✅ 預算表格 */
+        .budget-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            align-items: center;
         }
 
-        #shopping-list li {
-            background: #f7f7f7;
-            padding: 8px;
-            border-radius: 6px;
-            margin-bottom: 6px;
+        .budget-col {
+            width: 30%;
+            font-size: 14px;
         }
 
-        #shopping-list img {
-            display: block;
-            margin-top: 4px;
-            max-width: 100px;
+        .budget-delete {
+            font-size: 18px;
+            color: red;
+            cursor: pointer;
         }
 
+        /* ✅ 底部導航 */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -184,18 +196,6 @@
             cursor: pointer;
         }
 
-        .nav-btn span {
-            display: block;
-        }
-
-        .nav-btn-icon {
-            font-size: 18px;
-        }
-
-        .nav-btn-label {
-            font-size: 12px;
-        }
-
         .nav-btn.active {
             color: #0078ff;
             font-weight: bold;
@@ -206,49 +206,60 @@
         }
     </style>
 </head>
+
 <body>
 <div class="app-container">
 
     <div class="top-banner">🇯🇵 東京2025-2026</div>
 
+    <!-- ✅ 匯率標籤 -->
+    <div id="rate-badge" class="rate-badge">更新中...</div>
+
+    <!-- ✅ 倒數計時 -->
     <div class="countdown-card">
         <div class="countdown-title">✈️ 出發倒數</div>
         <div id="countdown" class="countdown-time">計算中...</div>
         <div class="countdown-route">HKG → HND</div>
     </div>
 
-    <header>
-        <h1>Travel Planner</h1>
-    </header>
-
     <div class="container">
 
-        <section id="map-section">
-            <h2>地圖 Map</h2>
-            <label>📅 選擇日期：</label>
-            <select id="map-date-selector"></select>
-            <iframe id="map-frame"
-                    src="https://www.google.com/maps?q=Tokyo"
-                    allowfullscreen>
-            </iframe>
-        </section>
-
+        <!-- ✅ 行程 -->
         <section id="itinerary-section">
             <h2>行程 Itinerary</h2>
-            <input type="text" id="itinerary-date" placeholder="DD-MM-YYYY">
+            <input type="date" id="itinerary-date">
             <input type="text" id="itinerary-place" placeholder="地點">
             <button id="add-itinerary">新增行程</button>
             <div id="itinerary-list"></div>
         </section>
 
-        <section id="budget-section">
-            <h2>預算 Budget</h2>
-            <input type="number" id="budget-jpy" placeholder="日圓 JPY">
-            <button id="convert-budget">轉換為 HKD</button>
-            <p id="budget-result"></p>
+        <!-- ✅ 地圖 -->
+        <section id="map-section" class="hidden">
+            <h2>地圖 Map</h2>
+            <label>📅 選擇日期：</label>
+            <select id="map-date-selector"></select>
+            <div id="map"></div>
         </section>
 
-        <section id="shopping-section">
+        <!-- ✅ 預算 -->
+        <section id="budget-section" class="hidden">
+            <h2>預算 Budget</h2>
+
+            <input type="date" id="budget-date">
+            <input type="text" id="budget-item" placeholder="項目">
+            <input type="number" id="budget-amount" placeholder="金額（JPY）">
+
+            <button id="add-budget">新增預算</button>
+
+            <div id="budget-list"></div>
+
+            <h3>總結</h3>
+            <p id="budget-total-jpy">總日元：¥0</p>
+            <p id="budget-total-hkd">折合港元：HK$0.00</p>
+        </section>
+
+        <!-- ✅ 購物 -->
+        <section id="shopping-section" class="hidden">
             <h2>購物清單 Shopping List</h2>
             <input type="text" id="shopping-item" placeholder="物品名稱">
             <input type="file" id="shopping-image">
@@ -259,231 +270,37 @@
     </div>
 </div>
 
+<!-- ✅ 底部導航 -->
 <div class="bottom-nav">
-    <div class="nav-btn active" data-target="map-section">
-        <span class="nav-btn-icon">📌</span>
-        <span class="nav-btn-label">地圖</span>
-    </div>
-    <div class="nav-btn" data-target="itinerary-section">
-        <span class="nav-btn-icon">📅</span>
-        <span class="nav-btn-label">行程</span>
-    </div>
-    <div class="nav-btn" data-target="budget-section">
-        <span class="nav-btn-icon">💰</span>
-        <span class="nav-btn-label">預算</span>
-    </div>
-    <div class="nav-btn" data-target="shopping-section">
-        <span class="nav-btn-icon">🛍️</span>
-        <span class="nav-btn-label">購物</span>
-    </div>
+    <div class="nav-btn active" data-target="itinerary-section">📅 行程</div>
+    <div class="nav-btn" data-target="map-section">📌 地圖</div>
+    <div class="nav-btn" data-target="budget-section">💰 預算</div>
+    <div class="nav-btn" data-target="shopping-section">🛍️ 購物</div>
 </div>
 
+<!-- ✅ Leaflet JS -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
 <script>
-function loadItineraryFromStorage() {
-    const data = localStorage.getItem("itinerary");
-    return data ? JSON.parse(data) : {};
-}
+/* ✅ 匯率更新 */
+async function updateRate() {
+    try {
+        const res = await fetch("https://api.exchangerate.host/latest?base=JPY&symbols=HKD");
+        const data = await res.json();
+        const rate = data.rates.HKD;
 
-function saveItineraryToStorage(itinerary) {
-    localStorage.setItem("itinerary", JSON.stringify(itinerary));
-}
+        window.currentRate = rate;
 
-function parseDateDDMMYYYY(dateStr) {
-    const [dd, mm, yyyy] = dateStr.split("-").map(Number);
-    return new Date(yyyy, mm - 1, dd);
-}
+        document.getElementById("rate-badge").textContent =
+            `[ ¥1 = HK$${rate.toFixed(4)} ]`;
 
-function updateMapForDate(date, itinerary) {
-    const places = itinerary[date];
-    const frame = document.getElementById("map-frame");
-
-    if (!places || places.length === 0) {
-        frame.src = "https://www.google.com/maps?q=Tokyo";
-        return;
+        updateBudgetTotals();
+    } catch {
+        document.getElementById("rate-badge").textContent = "[匯率更新失敗]";
     }
-
-    const query = places.map(p => encodeURIComponent(p)).join("+");
-    frame.src = `https://www.google.com/maps?q=${query}`;
 }
 
-function initMapDateSelector() {
-    const itinerary = loadItineraryFromStorage();
-    const selector = document.getElementById("map-date-selector");
-    selector.innerHTML = "";
-
-    const dates = Object.keys(itinerary);
-
-    if (dates.length === 0) {
-        selector.innerHTML = '<option>沒有行程</option>';
-        document.getElementById("map-frame").src = "https://www.google.com/maps?q=Tokyo";
-        return;
-    }
-
-    dates.sort((a, b) => parseDateDDMMYYYY(a) - parseDateDDMMYYYY(b));
-
-    dates.forEach(date => {
-        if (!itinerary[date] || itinerary[date].length === 0) return;
-        const option = document.createElement("option");
-        option.value = date;
-        option.textContent = date;
-        selector.appendChild(option);
-    });
-
-    if (selector.options.length === 0) {
-        selector.innerHTML = '<option>沒有行程</option>';
-        document.getElementById("map-frame").src = "https://www.google.com/maps?q=Tokyo";
-        return;
-    }
-
-    const firstDate = selector.options[0].value;
-    selector.value = firstDate;
-    updateMapForDate(firstDate, itinerary);
-
-    selector.onchange = () => {
-        const selected = selector.value;
-        updateMapForDate(selected, loadItineraryFromStorage());
-    };
-}
-
-function renderItineraryList() {
-    const itinerary = loadItineraryFromStorage();
-    const container = document.getElementById("itinerary-list");
-    container.innerHTML = "";
-
-    const dates = Object.keys(itinerary).sort((a, b) => parseDateDDMMYYYY(a) - parseDateDDMMYYYY(b));
-
-    dates.forEach(date => {
-        const places = itinerary[date];
-        if (!places || places.length === 0) return;
-
-        const groupDiv = document.createElement("div");
-        groupDiv.className = "date-group";
-        groupDiv.dataset.date = date;
-
-        const title = document.createElement("div");
-        title.className = "date-title";
-        title.textContent = date;
-        groupDiv.appendChild(title);
-
-        const list = document.createElement("div");
-        list.className = "date-list";
-
-        places.forEach((place, index) => {
-            const item = document.createElement("div");
-            item.className = "itinerary-item";
-            item.draggable = true;
-            item.textContent = place;
-            item.dataset.index = index;
-            item.dataset.date = date;
-            list.appendChild(item);
-        });
-
-        groupDiv.appendChild(list);
-        container.appendChild(groupDiv);
-    });
-
-    enableDragAndDrop();
-}
-
-function enableDragAndDrop() {
-    const items = document.querySelectorAll(".itinerary-item");
-
-    let draggedItem = null;
-    let draggedFromDate = null;
-
-    items.forEach(item => {
-        item.addEventListener("dragstart", () => {
-            draggedItem = item;
-            draggedFromDate = item.dataset.date;
-            item.classList.add("dragging");
-        });
-
-        item.addEventListener("dragend", () => {
-            if (draggedItem) draggedItem.classList.remove("dragging");
-            draggedItem = null;
-            draggedFromDate = null;
-            document.querySelectorAll(".date-list").forEach(list => list.classList.remove("drop-target"));
-        });
-    });
-
-    const lists = document.querySelectorAll(".date-list");
-
-    lists.forEach(list => {
-        list.addEventListener("dragover", (e) => {
-            e.preventDefault();
-            list.classList.add("drop-target");
-        });
-
-        list.addEventListener("dragleave", () => {
-            list.classList.remove("drop-target");
-        });
-
-        list.addEventListener("drop", (e) => {
-            e.preventDefault();
-            list.classList.remove("drop-target");
-            if (!draggedItem) return;
-
-            const children = Array.from(list.querySelectorAll(".itinerary-item"));
-            const afterElement = children.find(child => {
-                const box = child.getBoundingClientRect();
-                return e.clientY < box.top + box.height / 2;
-            });
-
-            if (afterElement == null) {
-                list.appendChild(draggedItem);
-            } else {
-                list.insertBefore(draggedItem, afterElement);
-            }
-
-            const date = list.parentElement.dataset.date;
-            updateItineraryOrder(date);
-            initMapDateSelector();
-        });
-    });
-}
-
-function updateItineraryOrder(date) {
-    const itinerary = loadItineraryFromStorage();
-    const listDiv = document.querySelector(`.date-group[data-date="${date}"] .date-list`);
-    const items = listDiv.querySelectorAll(".itinerary-item");
-
-    const newOrder = [];
-    items.forEach(item => {
-        newOrder.push(item.textContent);
-    });
-
-    itinerary[date] = newOrder;
-    saveItineraryToStorage(itinerary);
-}
-
-function initBottomNav() {
-    const navBtns = document.querySelectorAll(".nav-btn");
-    const sections = {
-        "map-section": document.getElementById("map-section"),
-        "itinerary-section": document.getElementById("itinerary-section"),
-        "budget-section": document.getElementById("budget-section"),
-        "shopping-section": document.getElementById("shopping-section")
-    };
-
-    function showSection(id) {
-        Object.keys(sections).forEach(key => {
-            sections[key].classList.toggle("hidden", key !== id);
-        });
-    }
-
-    showSection("map-section");
-
-    navBtns.forEach(btn => {
-        btn.addEventListener("click", () => {
-            navBtns.forEach(b => b.classList.remove("active"));
-            btn.classList.add("active");
-            const target = btn.dataset.target;
-            showSection(target);
-            window.scrollTo({ top: 0, behavior: "smooth" });
-        });
-    });
-}
-
+/* ✅ 倒數計時 */
 function initCountdown() {
     const countdownEl = document.getElementById("countdown");
 
@@ -514,64 +331,225 @@ function initCountdown() {
     setInterval(update, 1000);
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-    initCountdown();
-    initBottomNav();
-    initMapDateSelector();
-    renderItineraryList();
+/* ✅ 行程資料 */
+function loadItinerary() {
+    return JSON.parse(localStorage.getItem("itinerary") || "{}");
+}
 
-    const itineraryDateInput = document.getElementById("itinerary-date");
-    const itineraryPlaceInput = document.getElementById("itinerary-place");
-    const addItineraryBtn = document.getElementById("add-itinerary");
+function saveItinerary(data) {
+    localStorage.setItem("itinerary", JSON.stringify(data));
+}
 
-    addItineraryBtn.addEventListener("click", () => {
-        const date = itineraryDateInput.value.trim();
-        const place = itineraryPlaceInput.value.trim();
-        if (!date || !place) return;
+/* ✅ 行程渲染 */
+function renderItinerary() {
+    const data = loadItinerary();
+    const container = document.getElementById("itinerary-list");
+    container.innerHTML = "";
 
-        const itinerary = loadItineraryFromStorage();
-        if (!itinerary[date]) itinerary[date] = [];
-        itinerary[date].push(place);
-        saveItineraryToStorage(itinerary);
-
-        itineraryPlaceInput.value = "";
-        renderItineraryList();
-        initMapDateSelector();
+    const dates = Object.keys(data).sort((a, b) => {
+        const [da, ma, ya] = a.split("-");
+        const [db, mb, yb] = b.split("-");
+        return new Date(ya, ma - 1, da) - new Date(yb, mb - 1, db);
     });
 
-    document.getElementById("convert-budget").addEventListener("click", () => {
-        const jpy = Number(document.getElementById("budget-jpy").value);
-        if (!jpy) {
-            document.getElementById("budget-result").textContent = "";
-            return;
+    dates.forEach(date => {
+        const group = document.createElement("div");
+        group.className = "date-group";
+
+        const title = document.createElement("div");
+        title.className = "date-title";
+        title.textContent = date;
+        group.appendChild(title);
+
+        data[date].forEach((place, index) => {
+            const item = document.createElement("div");
+            item.className = "itinerary-item";
+            item.draggable = true;
+
+            const text = document.createElement("span");
+            text.textContent = place;
+
+            const del = document.createElement("span");
+            del.className = "delete-btn";
+            del.textContent = "🗑️";
+            del.onclick = () => {
+                data[date].splice(index, 1);
+                if (data[date].length === 0) delete data[date];
+                saveItinerary(data);
+                renderItinerary();
+                updateMapDateSelector();
+            };
+
+            item.appendChild(text);
+            item.appendChild(del);
+            group.appendChild(item);
+        });
+
+        container.appendChild(group);
+    });
+
+    enableDrag();
+}
+
+/* ✅ 行程拖曳排序 */
+function enableDrag() {
+    const items = document.querySelectorAll(".itinerary-item");
+
+    let dragged = null;
+
+    items.forEach(item => {
+        item.addEventListener("dragstart", () => {
+            dragged = item;
+            item.style.opacity = "0.5";
+        });
+
+        item.addEventListener("dragend", () => {
+            dragged.style.opacity = "1";
+            dragged = null;
+        });
+
+        item.addEventListener("dragover", e => e.preventDefault());
+
+        item.addEventListener("drop", () => {
+            if (dragged && dragged !== item) {
+                const parent = item.parentNode;
+                parent.insertBefore(dragged, item);
+
+                saveNewOrder(parent);
+            }
+        });
+    });
+}
+
+function saveNewOrder(parent) {
+    const date = parent.previousSibling.textContent;
+    const items = parent.querySelectorAll(".itinerary-item");
+
+    const newList = [];
+    items.forEach(i => newList.push(i.firstChild.textContent));
+
+    const data = loadItinerary();
+    data[date] = newList;
+    saveItinerary(data);
+
+    updateMapDateSelector();
+}
+
+/* ✅ 新增行程 */
+document.getElementById("add-itinerary").onclick = () => {
+    const dateInput = document.getElementById("itinerary-date").value;
+    const place = document.getElementById("itinerary-place").value.trim();
+
+    if (!dateInput || !place) return;
+
+    const d = new Date(dateInput);
+    const date = `${String(d.getDate()).padStart(2, "0")}-${String(d.getMonth() + 1).padStart(2, "0")}-${d.getFullYear()}`;
+
+    const data = loadItinerary();
+    if (!data[date]) data[date] = [];
+    data[date].push(place);
+
+    saveItinerary(data);
+    renderItinerary();
+    updateMapDateSelector();
+
+    document.getElementById("itinerary-place").value = "";
+};
+
+/* ✅ Leaflet 地圖 */
+let map = L.map("map").setView([35.6804, 139.7690], 12);
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
+
+let markers = [];
+
+function updateMapDateSelector() {
+    const data = loadItinerary();
+    const selector = document.getElementById("map-date-selector");
+    selector.innerHTML = "";
+
+    const dates = Object.keys(data).sort((a, b) => {
+        const [da, ma, ya] = a.split("-");
+        const [db, mb, yb] = b.split("-");
+        return new Date(ya, ma - 1, da) - new Date(yb, mb - 1, db);
+    });
+
+    dates.forEach(d => {
+        const opt = document.createElement("option");
+        opt.value = d;
+        opt.textContent = d;
+        selector.appendChild(opt);
+    });
+
+    if (dates.length > 0) {
+        selector.value = dates[0];
+        updateMap(dates[0]);
+    }
+}
+
+async function updateMap(date) {
+    markers.forEach(m => map.removeLayer(m));
+    markers = [];
+
+    const data = loadItinerary();
+    if (!data[date]) return;
+
+    for (const place of data[date]) {
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(place)}`;
+        const res = await fetch(url);
+        const json = await res.json();
+
+        if (json.length > 0) {
+            const lat = json[0].lat;
+            const lon = json[0].lon;
+
+            const marker = L.marker([lat, lon]).addTo(map);
+            marker.bindPopup(place);
+            markers.push(marker);
         }
-        const hkd = (jpy * 0.052).toFixed(2);
-        document.getElementById("budget-result").textContent = `HKD $${hkd}`;
-    });
+    }
 
-    const shoppingList = document.getElementById("shopping-list");
-    const addShoppingBtn = document.getElementById("add-shopping");
+    if (markers.length > 0) {
+        const group = L.featureGroup(markers);
+        map.fitBounds(group.getBounds(), { padding: [30, 30] });
+    }
+}
 
-    addShoppingBtn.addEventListener("click", () => {
-        const item = document.getElementById("shopping-item").value.trim();
-        const imgFile = document.getElementById("shopping-image").files[0];
+document.getElementById("map-date-selector").onchange = e => {
+    updateMap(e.target.value);
+};
 
-        if (!item) return;
+/* ✅ 預算資料 */
+function loadBudget() {
+    return JSON.parse(localStorage.getItem("budget") || "[]");
+}
 
-        const li = document.createElement("li");
-        li.textContent = item;
+function saveBudget(data) {
+    localStorage.setItem("budget", JSON.stringify(data));
+}
 
-        if (imgFile) {
-            const img = document.createElement("img");
-            img.src = URL.createObjectURL(imgFile);
-            li.appendChild(img);
-        }
+/* ✅ 新增預算 */
+document.getElementById("add-budget").onclick = () => {
+    const date = document.getElementById("budget-date").value;
+    const item = document.getElementById("budget-item").value.trim();
+    const amount = Number(document.getElementById("budget-amount").value);
 
-        shoppingList.appendChild(li);
-        document.getElementById("shopping-item").value = "";
-        document.getElementById("shopping-image").value = "";
-    });
-});
-</script>
-</body>
-</html>
+    if (!date || !item || !amount) return;
+
+    const d = new Date(date);
+    const dateStr = `${String(d.getDate()).padStart(2, "0")}-${String(d.getMonth() + 1).padStart(2, "0")}-${d.getFullYear()}`;
+
+    const data = loadBudget();
+    data.push({ date: dateStr, item, amount });
+    saveBudget(data);
+
+    renderBudget();
+};
+
+/* ✅ 預算渲染 */
+function renderBudget() {
+    const data = loadBudget();
+    const list = document.getElementById("budget-list");
+    list.innerHTML = "";
+
+    data.forEach((row, index) => {
+        const div = document.create
