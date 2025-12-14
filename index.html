@@ -281,26 +281,22 @@
 <!-- ✅ Leaflet JS -->
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>
-/* ✅ 匯率更新（穩定 API + 最後更新時間 + 點擊刷新） */
+/* ✅ 匯率更新（穩定 API + 點擊刷新 + 無最後更新時間） */
 async function updateRate(showAnimation = true) {
     const badge = document.getElementById("rate-badge");
 
     try {
         badge.textContent = "更新中…";
 
-        // ✅ 改用穩定 API（open.er-api.com）
+        // ✅ 使用穩定 API（open.er-api.com）
         const res = await fetch("https://open.er-api.com/v6/latest/JPY");
         const data = await res.json();
 
         const rate = data.rates.HKD;
         window.currentRate = rate;
 
-        // ✅ 時間
-        const now = new Date();
-        const hh = String(now.getHours()).padStart(2, "0");
-        const mm = String(now.getMinutes()).padStart(2, "0");
-
-        badge.textContent = `[ ¥1 = HK$${rate.toFixed(4)} | 更新 ${hh}:${mm} ]`;
+        // ✅ 只顯示匯率，不顯示時間
+        badge.textContent = `[ ¥1 = HK$${rate.toFixed(4)} ]`;
 
         // ✅ 動畫效果
         if (showAnimation) {
@@ -524,7 +520,7 @@ async function updateMap(date) {
             cache[place] = { lat, lon };
             localStorage.setItem("geoCache", JSON.stringify(cache));
 
-            const marker = L.marker([lat, lon]).addAddTo(map);
+            const marker = L.marker([lat, lon]).addTo(map);
             marker.bindPopup(place);
             markers.push(marker);
         }
