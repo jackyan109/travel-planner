@@ -41,7 +41,7 @@
             border-bottom: 1px solid #ddd;
         }
 
-        /* ✅ 匯率標籤 */
+        /* ✅ 匯率標籤（右上角） */
         .rate-badge {
             position: absolute;
             top: 12px;
@@ -52,9 +52,10 @@
             border-radius: 8px;
             font-size: 12px;
             font-weight: bold;
+            z-index: 99999;
+            cursor: pointer;
         }
 
-        /* ✅ 倒數計時卡片 */
         .countdown-card {
             background: white;
             margin: 10px;
@@ -120,14 +121,12 @@
             background: #005fcc;
         }
 
-        /* ✅ Leaflet 地圖 */
         #map {
             width: 100%;
             height: 350px;
             border-radius: 10px;
         }
 
-        /* ✅ 行程列表 */
         .date-group {
             margin-bottom: 12px;
         }
@@ -155,7 +154,6 @@
             margin-left: 10px;
         }
 
-        /* ✅ 預算表格（簡潔版） */
         .budget-row {
             display: flex;
             justify-content: space-between;
@@ -175,7 +173,6 @@
             cursor: pointer;
         }
 
-        /* ✅ 底部導航 */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -212,10 +209,11 @@
 <body>
 <div class="app-container">
 
-    <div class="top-banner">🇯🇵 東京2025-2026</div>
-
-    <!-- ✅ 匯率標籤 -->
-    <div id="rate-badge" class="rate-badge">更新中...</div>
+    <!-- ✅ 修正版 top-banner（匯率在右上角） -->
+    <div class="top-banner">
+        🇯🇵 東京2025-2026
+        <span id="rate-badge" class="rate-badge">更新中...</span>
+    </div>
 
     <!-- ✅ 倒數計時 -->
     <div class="countdown-card">
@@ -717,4 +715,5 @@ document.addEventListener("DOMContentLoaded", () => {
 
 </body>
 </html>
+
 
